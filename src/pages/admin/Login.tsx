@@ -1,19 +1,28 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Code2, Lock, Mail, AlertCircle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Code2, Lock, Mail, AlertCircle, UserPlus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { user, isAdmin, loading, signIn, signUp } = useAuth();
+  const [mode, setMode] = useState<"login" | "register">("login");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    fullName: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  useEffect(() => {
+    if (!loading && user && isAdmin) {
+      navigate("/admin");
+    }
+  }, [user, isAdmin, loading, navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
@@ -21,31 +30,41 @@ const Login = () => {
       [e.target.name]: e.target.value,
     }));
     setError("");
+    setSuccess("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsSubmitting(true);
     setError("");
+    setSuccess("");
 
-    // Demo login - in production this would use Supabase Auth
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // For demo purposes only - real authentication requires Lovable Cloud
-    if (formData.email === "admin@rajacoding.com" && formData.password === "admin123") {
-      toast({
-        title: "Login Berhasil",
-        description: "Selamat datang di Dashboard Admin",
-      });
-      // Store demo session
-      localStorage.setItem("adminDemo", "true");
-      navigate("/admin");
+    if (mode === "login") {
+      const { error } = await signIn(formData.email, formData.password);
+      if (error) {
+        setError(error.message);
+      }
     } else {
-      setError("Email atau password salah. Gunakan: admin@rajacoding.com / admin123");
+      const { error } = await signUp(formData.email, formData.password, formData.fullName);
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccess("Akun berhasil dibuat! Silakan login.");
+        setMode("login");
+        setFormData({ email: formData.email, password: "", fullName: "" });
+      }
     }
 
-    setIsLoading(false);
+    setIsSubmitting(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Memuat...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 hero-gradient">
@@ -67,18 +86,13 @@ const Login = () => {
         {/* Login Card */}
         <div className="p-8 rounded-2xl card-gradient border border-border">
           <div className="text-center mb-8">
-            <h1 className="font-display text-2xl font-bold mb-2">Admin Login</h1>
+            <h1 className="font-display text-2xl font-bold mb-2">
+              {mode === "login" ? "Admin Login" : "Daftar Admin"}
+            </h1>
             <p className="text-muted-foreground text-sm">
-              Masuk ke dashboard admin Raja Coding
-            </p>
-          </div>
-
-          {/* Demo Notice */}
-          <div className="mb-6 p-3 rounded-lg bg-primary/10 border border-primary/20">
-            <p className="text-xs text-muted-foreground">
-              <span className="font-semibold text-primary">Demo Mode:</span> Gunakan email{" "}
-              <code className="text-primary">admin@rajacoding.com</code> dan password{" "}
-              <code className="text-primary">admin123</code>
+              {mode === "login"
+                ? "Masuk ke dashboard admin Raja Coding"
+                : "Buat akun admin baru"}
             </p>
           </div>
 
@@ -89,7 +103,33 @@ const Login = () => {
             </div>
           )}
 
+          {success && (
+            <div className="mb-6 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+              <p className="text-xs text-green-500">{success}</p>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
+            {mode === "register" && (
+              <div>
+                <label htmlFor="fullName" className="block text-sm font-medium mb-2">
+                  Nama Lengkap
+                </label>
+                <div className="relative">
+                  <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    placeholder="Nama Lengkap"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    required={mode === "register"}
+                    className="pl-10 bg-secondary/50"
+                  />
+                </div>
+              </div>
+            )}
             <div>
               <label htmlFor="email" className="block text-sm font-medium mb-2">
                 Email
@@ -122,20 +162,37 @@ const Login = () => {
                   value={formData.password}
                   onChange={handleChange}
                   required
+                  minLength={6}
                   className="pl-10 bg-secondary/50"
                 />
               </div>
             </div>
-            <Button type="submit" variant="hero" className="w-full" disabled={isLoading}>
-              {isLoading ? "Masuk..." : "Masuk"}
+            <Button type="submit" variant="hero" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Memproses..." : mode === "login" ? "Masuk" : "Daftar"}
             </Button>
           </form>
+
+          <div className="mt-6 text-center">
+            <button
+              type="button"
+              className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              onClick={() => {
+                setMode(mode === "login" ? "register" : "login");
+                setError("");
+                setSuccess("");
+              }}
+            >
+              {mode === "login"
+                ? "Belum punya akun? Daftar"
+                : "Sudah punya akun? Masuk"}
+            </button>
+          </div>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">
-          <a href="/" className="hover:text-primary transition-colors">
+          <Link to="/" className="hover:text-primary transition-colors">
             ← Kembali ke Website
-          </a>
+          </Link>
         </p>
       </div>
     </div>
