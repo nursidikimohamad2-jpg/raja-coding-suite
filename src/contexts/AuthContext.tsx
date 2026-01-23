@@ -14,6 +14,18 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timeoutId: number | undefined;
+
+  const timeoutPromise = new Promise<T>((resolve) => {
+    timeoutId = window.setTimeout(() => resolve(fallback), ms);
+  });
+
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  });
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -50,7 +62,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setUser(session?.user ?? null);
 
           if (session?.user) {
-            const adminStatus = await checkAdminRole(session.user.id);
+            // Avoid infinite loading if the backend call hangs
+            const adminStatus = await withTimeout(
+              checkAdminRole(session.user.id),
+              4000,
+              false
+            );
             setIsAdmin(adminStatus);
           } else {
             setIsAdmin(false);
@@ -68,7 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          const adminStatus = await checkAdminRole(session.user.id);
+          const adminStatus = await withTimeout(
+            checkAdminRole(session.user.id),
+            4000,
+            false
+          );
           setIsAdmin(adminStatus);
         } else {
           setIsAdmin(false);
