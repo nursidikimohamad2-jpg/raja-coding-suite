@@ -4,9 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mail, Phone, MapPin, MessageCircle, Send } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useSiteSettings } from "@/hooks/usePublicData";
+import { supabase } from "@/integrations/supabase/client";
 
 const Kontak = () => {
   const { toast } = useToast();
+  const { data: settings } = useSiteSettings();
+  
   const [formData, setFormData] = useState({
     nama: "",
     kontak: "",
@@ -25,19 +29,33 @@ const Kontak = () => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const { error } = await supabase.from("contact_messages").insert({
+        name: formData.nama,
+        contact: formData.kontak,
+        message: formData.pesan,
+      });
 
-    toast({
-      title: "Pesan Terkirim!",
-      description: "Terima kasih, kami akan segera menghubungi Anda.",
-    });
+      if (error) throw error;
 
-    setFormData({ nama: "", kontak: "", pesan: "" });
-    setIsSubmitting(false);
+      toast({
+        title: "Pesan Terkirim!",
+        description: "Terima kasih, kami akan segera menghubungi Anda.",
+      });
+
+      setFormData({ nama: "", kontak: "", pesan: "" });
+    } catch (error) {
+      toast({
+        title: "Gagal",
+        description: "Terjadi kesalahan saat mengirim pesan.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const whatsappNumber = "6281234567890";
+  const whatsappNumber = settings?.whatsapp || "6281234567890";
   const whatsappMessage = encodeURIComponent("Halo Raja Coding, saya ingin konsultasi tentang...");
 
   return (
@@ -122,19 +140,19 @@ const Kontak = () => {
                 {
                   icon: Mail,
                   title: "Email",
-                  value: "info@rajacoding.com",
-                  href: "mailto:info@rajacoding.com",
+                  value: settings?.email || "info@rajacoding.com",
+                  href: `mailto:${settings?.email || "info@rajacoding.com"}`,
                 },
                 {
                   icon: Phone,
                   title: "Telepon / WhatsApp",
-                  value: "+62 812-3456-7890",
+                  value: settings?.phone || "+62 812-3456-7890",
                   href: `https://wa.me/${whatsappNumber}`,
                 },
                 {
                   icon: MapPin,
                   title: "Alamat",
-                  value: "Jakarta, Indonesia",
+                  value: settings?.address || "Jakarta, Indonesia",
                   href: null,
                 },
               ].map((item) => (

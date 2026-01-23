@@ -8,12 +8,27 @@ import {
   Wrench, 
   GraduationCap,
   ArrowRight,
-  Check
+  Check,
+  Package,
+  LucideIcon
 } from "lucide-react";
+import { useActiveProducts } from "@/hooks/usePublicData";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const products = [
+// Map icon names to actual icons
+const iconMap: Record<string, LucideIcon> = {
+  Globe,
+  ShoppingCart,
+  Calculator,
+  Database,
+  Wrench,
+  GraduationCap,
+  Package,
+};
+
+const defaultProducts = [
   {
-    icon: Globe,
+    icon: "Globe",
     title: "Website Company Profile",
     description: "Website profesional untuk memperkenalkan bisnis Anda kepada dunia.",
     features: [
@@ -22,10 +37,10 @@ const products = [
       "Integrasi sosial media",
       "Form kontak & WhatsApp",
     ],
-    popular: false,
+    is_popular: false,
   },
   {
-    icon: ShoppingCart,
+    icon: "ShoppingCart",
     title: "Website UMKM & Toko Online",
     description: "Solusi e-commerce lengkap untuk UMKM dengan fitur penjualan modern.",
     features: [
@@ -34,10 +49,10 @@ const products = [
       "Integrasi pembayaran",
       "Manajemen pesanan",
     ],
-    popular: true,
+    is_popular: true,
   },
   {
-    icon: Calculator,
+    icon: "Calculator",
     title: "Aplikasi Kasir / POS",
     description: "Sistem Point of Sale yang memudahkan transaksi dan pencatatan.",
     features: [
@@ -46,47 +61,20 @@ const products = [
       "Manajemen stok",
       "Multi cabang",
     ],
-    popular: false,
-  },
-  {
-    icon: Database,
-    title: "Sistem Informasi Custom",
-    description: "Sistem informasi khusus yang disesuaikan dengan kebutuhan bisnis Anda.",
-    features: [
-      "Analisis kebutuhan",
-      "Desain custom",
-      "Integrasi sistem",
-      "Pelatihan user",
-    ],
-    popular: false,
-  },
-  {
-    icon: Wrench,
-    title: "Maintenance & Support",
-    description: "Layanan pemeliharaan dan dukungan teknis untuk sistem yang sudah ada.",
-    features: [
-      "Monitoring 24/7",
-      "Update keamanan",
-      "Backup rutin",
-      "Support prioritas",
-    ],
-    popular: false,
-  },
-  {
-    icon: GraduationCap,
-    title: "Edukasi Coding",
-    description: "Pelatihan dan kursus programming untuk individu maupun tim.",
-    features: [
-      "Kurikulum terstruktur",
-      "Praktek langsung",
-      "Sertifikat",
-      "Mentor berpengalaman",
-    ],
-    popular: false,
+    is_popular: false,
   },
 ];
 
 const Produk = () => {
+  const { data: productsData, isLoading } = useActiveProducts();
+
+  const products = productsData && productsData.length > 0 
+    ? productsData.map((p) => ({
+        ...p,
+        features: typeof p.features === 'string' ? JSON.parse(p.features) : (p.features as string[]) || [],
+      }))
+    : defaultProducts;
+
   return (
     <div className="min-h-screen py-20 md:py-32">
       <div className="container mx-auto px-4">
@@ -101,52 +89,63 @@ const Produk = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.title}
-              className="group relative p-6 rounded-2xl card-gradient border border-border hover:border-primary/50 transition-all duration-500"
-            >
-              {/* Popular Badge */}
-              {product.popular && (
-                <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
-                  Populer
+        {isLoading ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="h-80 rounded-2xl" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => {
+              const IconComponent = iconMap[product.icon] || Package;
+              return (
+                <div
+                  key={product.title}
+                  className="group relative p-6 rounded-2xl card-gradient border border-border hover:border-primary/50 transition-all duration-500"
+                >
+                  {/* Popular Badge */}
+                  {product.is_popular && (
+                    <div className="absolute -top-3 right-6 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                      Populer
+                    </div>
+                  )}
+
+                  {/* Icon */}
+                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
+                    <IconComponent className="w-7 h-7 text-primary" />
+                  </div>
+
+                  {/* Title */}
+                  <h3 className="font-display text-xl font-semibold mb-3">{product.title}</h3>
+
+                  {/* Description */}
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-5">
+                    {product.description}
+                  </p>
+
+                  {/* Features */}
+                  <ul className="space-y-2 mb-6">
+                    {product.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm">
+                        <Check className="w-4 h-4 text-primary shrink-0" />
+                        <span className="text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* CTA */}
+                  <Button variant="heroOutline" className="w-full group/btn" asChild>
+                    <Link to="/kontak">
+                      Pesan Sekarang
+                      <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
+                  </Button>
                 </div>
-              )}
-
-              {/* Icon */}
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-5 group-hover:bg-primary/20 transition-colors">
-                <product.icon className="w-7 h-7 text-primary" />
-              </div>
-
-              {/* Title */}
-              <h3 className="font-display text-xl font-semibold mb-3">{product.title}</h3>
-
-              {/* Description */}
-              <p className="text-muted-foreground text-sm leading-relaxed mb-5">
-                {product.description}
-              </p>
-
-              {/* Features */}
-              <ul className="space-y-2 mb-6">
-                {product.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm">
-                    <Check className="w-4 h-4 text-primary shrink-0" />
-                    <span className="text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              <Button variant="heroOutline" className="w-full group/btn" asChild>
-                <Link to="/kontak">
-                  Pesan Sekarang
-                  <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                </Link>
-              </Button>
-            </div>
-          ))}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Custom Solution CTA */}
         <div className="mt-20 text-center">

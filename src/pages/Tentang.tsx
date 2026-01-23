@@ -1,6 +1,20 @@
 import { Target, Eye, CheckCircle, Users, Award, Zap } from "lucide-react";
+import { useAboutContent } from "@/hooks/usePublicData";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Tentang = () => {
+  const { data: about, isLoading } = useAboutContent();
+
+  // Parse mission from JSON if needed
+  const missionItems = about?.mission 
+    ? (typeof about.mission === 'string' ? JSON.parse(about.mission) : about.mission) as string[]
+    : [
+        "Memberikan solusi digital berkualitas dengan harga kompetitif",
+        "Mengutamakan kepuasan dan kebutuhan klien",
+        "Terus berinovasi mengikuti perkembangan teknologi",
+        "Membangun hubungan jangka panjang dengan klien",
+      ];
+
   return (
     <div className="min-h-screen">
       {/* Hero */}
@@ -13,11 +27,13 @@ const Tentang = () => {
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               Tentang <span className="gradient-text">Raja Coding</span>
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
-              Kami adalah tim developer profesional yang berdedikasi untuk membantu bisnis dan individu 
-              mewujudkan ide digital mereka menjadi kenyataan. Dengan pengalaman lebih dari 5 tahun, 
-              kami telah membantu puluhan klien mencapai tujuan digital mereka.
-            </p>
+            {isLoading ? (
+              <Skeleton className="h-24 w-full" />
+            ) : (
+              <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+                {about?.profile_text || "Kami adalah tim developer profesional yang berdedikasi untuk membantu bisnis dan individu mewujudkan ide digital mereka menjadi kenyataan. Dengan pengalaman lebih dari 5 tahun, kami telah membantu puluhan klien mencapai tujuan digital mereka."}
+              </p>
+            )}
           </div>
         </div>
       </section>
@@ -32,11 +48,13 @@ const Tentang = () => {
                 <Eye className="w-7 h-7 text-primary" />
               </div>
               <h2 className="font-display text-2xl font-bold mb-4">Visi</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Menjadi partner teknologi terpercaya bagi bisnis di Indonesia, membantu transformasi 
-                digital dengan solusi inovatif dan berkualitas tinggi yang mendorong pertumbuhan 
-                dan kesuksesan jangka panjang.
-              </p>
+              {isLoading ? (
+                <Skeleton className="h-20 w-full" />
+              ) : (
+                <p className="text-muted-foreground leading-relaxed">
+                  {about?.vision || "Menjadi partner teknologi terpercaya bagi bisnis di Indonesia, membantu transformasi digital dengan solusi inovatif dan berkualitas tinggi yang mendorong pertumbuhan dan kesuksesan jangka panjang."}
+                </p>
+              )}
             </div>
 
             {/* Misi */}
@@ -45,19 +63,18 @@ const Tentang = () => {
                 <Target className="w-7 h-7 text-primary" />
               </div>
               <h2 className="font-display text-2xl font-bold mb-4">Misi</h2>
-              <ul className="space-y-3">
-                {[
-                  "Memberikan solusi digital berkualitas dengan harga kompetitif",
-                  "Mengutamakan kepuasan dan kebutuhan klien",
-                  "Terus berinovasi mengikuti perkembangan teknologi",
-                  "Membangun hubungan jangka panjang dengan klien",
-                ].map((item, index) => (
-                  <li key={index} className="flex items-start gap-3 text-muted-foreground">
-                    <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
+              {isLoading ? (
+                <Skeleton className="h-32 w-full" />
+              ) : (
+                <ul className="space-y-3">
+                  {missionItems.map((item, index) => (
+                    <li key={index} className="flex items-start gap-3 text-muted-foreground">
+                      <CheckCircle className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>
