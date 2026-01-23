@@ -22,18 +22,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const checkAdminRole = async (userId: string) => {
     try {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .eq("role", "admin")
-        .maybeSingle();
-      
+      // Prefer RPC security-definer to avoid RLS recursion/permission issues
+      // and to keep role checks authoritative.
+      const { data, error } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "admin",
+      });
+
       if (error) {
-        console.error("Error checking admin role:", error);
+        console.error("Error checking admin role (rpc has_role):", error);
         return false;
       }
-      return !!data;
+
+      return data === true;
     } catch (err) {
       console.error("Error checking admin role:", err);
       return false;
@@ -44,32 +45,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Check admin role
-          const adminStatus = await checkAdminRole(session.user.id);
-          setIsAdmin(adminStatus);
-        } else {
-          setIsAdmin(false);
+        try {
+          setSession(session);
+          setUser(session?.user ?? null);
+
+          if (session?.user) {
+            const adminStatus = await checkAdminRole(session.user.id);
+            setIsAdmin(adminStatus);
+          } else {
+            setIsAdmin(false);
+          }
+        } finally {
+          setLoading(false);
         }
-        
-        setLoading(false);
       }
     );
 
     // THEN check initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        const adminStatus = await checkAdminRole(session.user.id);
-        setIsAdmin(adminStatus);
+      try {
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          const adminStatus = await checkAdminRole(session.user.id);
+          setIsAdmin(adminStatus);
+        } else {
+          setIsAdmin(false);
+        }
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
