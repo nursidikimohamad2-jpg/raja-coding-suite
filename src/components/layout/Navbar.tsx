@@ -3,8 +3,9 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useActiveMenus, useSiteSettings } from "@/hooks/usePublicData";
 
-const navLinks = [
+const defaultNavLinks = [
   { name: "Beranda", href: "/" },
   { name: "Portofolio", href: "/portofolio" },
   { name: "Tentang", href: "/tentang" },
@@ -15,6 +16,15 @@ const navLinks = [
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+  const { data: menus } = useActiveMenus();
+  const { data: settings } = useSiteSettings();
+
+  // Use database menus if available, otherwise use defaults
+  const navLinks = menus && menus.length > 0 
+    ? menus.map((m) => ({ name: m.menu_label, href: m.menu_path }))
+    : defaultNavLinks;
+
+  const companyName = settings?.company_name || "RajaCoding";
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass-effect">
@@ -22,11 +32,25 @@ export function Navbar() {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-              <Code2 className="w-6 h-6 text-primary" />
-            </div>
+            {settings?.logo_url ? (
+              <img 
+                src={settings.logo_url} 
+                alt={companyName} 
+                className="w-10 h-10 rounded-xl object-contain"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
+                <Code2 className="w-6 h-6 text-primary" />
+              </div>
+            )}
             <span className="font-display font-bold text-xl">
-              Raja<span className="text-primary">Coding</span>
+              {companyName.includes("Raja") || companyName.includes("Coding") ? (
+                <>
+                  Raja<span className="text-primary">Coding</span>
+                </>
+              ) : (
+                companyName
+              )}
             </span>
           </Link>
 
