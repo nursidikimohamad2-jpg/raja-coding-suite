@@ -4,6 +4,30 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { useHomepageContent } from "@/hooks/usePublicData";
 import { Skeleton } from "@/components/ui/skeleton";
 
+// Helper function to convert YouTube URL to embed URL
+function getYouTubeEmbedUrl(url: string): string {
+  if (!url) return "";
+  
+  // Handle youtu.be format
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (shortMatch) {
+    return `https://www.youtube.com/embed/${shortMatch[1]}`;
+  }
+  
+  // Handle youtube.com/watch?v= format
+  const longMatch = url.match(/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
+  if (longMatch) {
+    return `https://www.youtube.com/embed/${longMatch[1]}`;
+  }
+  
+  // Handle youtube.com/embed/ format (already embedded)
+  if (url.includes("youtube.com/embed/")) {
+    return url;
+  }
+  
+  return url;
+}
+
 export function HeroSection() {
   const { data: homepage, isLoading } = useHomepageContent();
 
@@ -80,6 +104,23 @@ export function HeroSection() {
               </Link>
             </Button>
           </div>
+
+          {/* YouTube Embed */}
+          {(homepage as any)?.youtube_url && (
+            <div className="mt-12 animate-fade-in" style={{ animationDelay: '0.5s' }}>
+              <div className="relative w-full max-w-3xl mx-auto rounded-2xl overflow-hidden shadow-2xl border border-border/50 bg-card">
+                <div className="aspect-video">
+                  <iframe
+                    src={getYouTubeEmbedUrl((homepage as any).youtube_url)}
+                    title="YouTube video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Stats */}
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 animate-fade-in" style={{ animationDelay: '0.6s' }}>
