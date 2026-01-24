@@ -82,6 +82,7 @@ export type Database = {
           stats_years: string | null
           subheadline: string
           updated_at: string
+          youtube_url: string | null
         }
         Insert: {
           created_at?: string
@@ -96,6 +97,7 @@ export type Database = {
           stats_years?: string | null
           subheadline?: string
           updated_at?: string
+          youtube_url?: string | null
         }
         Update: {
           created_at?: string
@@ -110,6 +112,7 @@ export type Database = {
           stats_years?: string | null
           subheadline?: string
           updated_at?: string
+          youtube_url?: string | null
         }
         Relationships: []
       }

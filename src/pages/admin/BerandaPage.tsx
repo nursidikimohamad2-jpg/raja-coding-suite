@@ -21,6 +21,7 @@ const BerandaPage = () => {
     stats_projects: "",
     stats_clients: "",
     stats_years: "",
+    youtube_url: "",
   });
 
   const [initialized, setInitialized] = useState(false);
@@ -36,6 +37,7 @@ const BerandaPage = () => {
       stats_projects: homepage.stats_projects || "",
       stats_clients: homepage.stats_clients || "",
       stats_years: homepage.stats_years || "",
+      youtube_url: (homepage as any).youtube_url || "",
     });
     setInitialized(true);
   }
@@ -180,6 +182,28 @@ const BerandaPage = () => {
                 className="bg-secondary/50"
               />
             </div>
+          </div>
+        </div>
+
+        {/* YouTube Video */}
+        <div className="p-6 rounded-xl bg-card border border-border space-y-4">
+          <h2 className="font-display font-semibold">Video YouTube</h2>
+          <p className="text-sm text-muted-foreground">
+            Masukkan URL video YouTube yang akan ditampilkan di halaman beranda
+          </p>
+          
+          <div>
+            <label className="block text-sm font-medium mb-2">URL YouTube</label>
+            <Input
+              name="youtube_url"
+              value={formData.youtube_url}
+              onChange={handleChange}
+              placeholder="https://www.youtube.com/watch?v=xxxxx atau https://youtu.be/xxxxx"
+              className="bg-secondary/50"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ
+            </p>
           </div>
         </div>
 
