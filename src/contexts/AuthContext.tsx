@@ -54,15 +54,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    let initialSessionHandled = false;
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        // Skip INITIAL_SESSION here — we handle it via getSession below
+        if (event === "INITIAL_SESSION") return;
+
         try {
+          // Set loading true while we resolve the admin role
+          setLoading(true);
           setSession(session);
           setUser(session?.user ?? null);
 
           if (session?.user) {
-            // Avoid infinite loading if the backend call hangs
             const adminStatus = await withTimeout(
               checkAdminRole(session.user.id),
               4000,
@@ -80,6 +86,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // THEN check initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (initialSessionHandled) return;
+      initialSessionHandled = true;
+
       try {
         setSession(session);
         setUser(session?.user ?? null);
