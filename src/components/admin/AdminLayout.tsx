@@ -37,16 +37,13 @@ export function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/admin/login");
-    }
-  }, [user, loading, navigate]);
+    // Only redirect when loading is complete and we have a definitive answer
+    if (loading) return;
 
-  useEffect(() => {
-    if (!loading && user && !isAdmin) {
-      navigate("/admin/login");
+    if (!user || !isAdmin) {
+      navigate("/admin/login", { replace: true });
     }
-  }, [isAdmin, loading, user, navigate]);
+  }, [user, isAdmin, loading, navigate]);
 
   const handleLogout = async () => {
     await signOut();
