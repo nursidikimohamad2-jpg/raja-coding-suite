@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,35 +14,25 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
-  let timeoutId: number | undefined;
-
-  const timeoutPromise = new Promise<T>((resolve) => {
-    timeoutId = window.setTimeout(() => resolve(fallback), ms);
-  });
-
-  return Promise.race([promise, timeoutPromise]).finally(() => {
-    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
-  });
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const checkAdminRole = async (userId: string) => {
+  // Use a ref to track the latest admin check and cancel stale ones
+  const adminCheckIdRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  const checkAdminRole = useCallback(async (userId: string): Promise<boolean> => {
     try {
-      // Prefer RPC security-definer to avoid RLS recursion/permission issues
-      // and to keep role checks authoritative.
       const { data, error } = await supabase.rpc("has_role", {
         _user_id: userId,
         _role: "admin",
       });
 
       if (error) {
-        console.error("Error checking admin role (rpc has_role):", error);
+        console.error("Error checking admin role:", error);
         return false;
       }
 
@@ -51,71 +41,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Error checking admin role:", err);
       return false;
     }
-  };
+  }, []);
 
-  useEffect(() => {
-    let initialSessionHandled = false;
+  /**
+   * Core handler: process any session change.
+   * Uses a monotonically increasing ID so that if multiple auth events
+   * fire in quick succession, only the latest one "wins".
+   */
+  const handleSession = useCallback(async (newSession: Session | null) => {
+    const checkId = ++adminCheckIdRef.current;
 
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        // Skip INITIAL_SESSION here — we handle it via getSession below
-        if (event === "INITIAL_SESSION") return;
+    setSession(newSession);
+    setUser(newSession?.user ?? null);
 
-        try {
-          // Set loading true while we resolve the admin role
-          setLoading(true);
-          setSession(session);
-          setUser(session?.user ?? null);
+    if (newSession?.user) {
+      // Don't set loading=false until we know the admin status
+      setLoading(true);
 
-          if (session?.user) {
-            const adminStatus = await withTimeout(
-              checkAdminRole(session.user.id),
-              4000,
-              false
-            );
-            setIsAdmin(adminStatus);
-          } else {
-            setIsAdmin(false);
-          }
-        } finally {
+      try {
+        const adminStatus = await checkAdminRole(newSession.user.id);
+
+        // Only apply if this is still the latest check
+        if (mountedRef.current && checkId === adminCheckIdRef.current) {
+          setIsAdmin(adminStatus);
+          setLoading(false);
+        }
+      } catch {
+        if (mountedRef.current && checkId === adminCheckIdRef.current) {
+          setIsAdmin(false);
           setLoading(false);
         }
       }
+    } else {
+      // No user — clear admin and stop loading immediately
+      setIsAdmin(false);
+      setLoading(false);
+    }
+  }, [checkAdminRole]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    // 1) Set up the auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, newSession) => {
+        // We handle every event uniformly through handleSession.
+        // The checkId mechanism ensures only the latest result is applied.
+        handleSession(newSession);
+      }
     );
 
-    // THEN check initial session
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (initialSessionHandled) return;
-      initialSessionHandled = true;
-
-      try {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          const adminStatus = await withTimeout(
-            checkAdminRole(session.user.id),
-            4000,
-            false
-          );
-          setIsAdmin(adminStatus);
-        } else {
-          setIsAdmin(false);
-        }
-      } finally {
-        setLoading(false);
-      }
+    // 2) Retrieve the initial session (in case onAuthStateChange hasn't fired yet)
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      // handleSession is idempotent — if onAuthStateChange already
+      // fired with the same session, the checkId will simply supersede.
+      handleSession(initialSession);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mountedRef.current = false;
+      subscription.unsubscribe();
+    };
+  }, [handleSession]);
 
   const signIn = async (email: string, password: string) => {
+    // Set loading immediately so AdminLayout doesn't redirect
+    setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    // If error, stop loading (onAuthStateChange won't fire)
+    if (error) {
+      setLoading(false);
+    }
     return { error };
   };
 
@@ -134,8 +133,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    // Increment checkId to cancel any pending admin check
+    adminCheckIdRef.current++;
     setIsAdmin(false);
+    await supabase.auth.signOut();
   };
 
   return (
