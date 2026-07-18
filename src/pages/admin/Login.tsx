@@ -80,7 +80,7 @@ const Login = () => {
             <Code2 className="w-7 h-7 text-primary" />
           </div>
           <span className="font-display font-bold text-2xl">
-            Raja<span className="text-primary">Coding</span>
+            <BrandName />
           </span>
         </div>
 
@@ -92,7 +92,7 @@ const Login = () => {
             </h1>
             <p className="text-muted-foreground text-sm">
               {mode === "login"
-                ? "Masuk ke dashboard admin Raja Coding"
+                ? `Masuk ke dashboard admin ${useCompanyName()}`
                 : "Buat akun admin baru"}
             </p>
           </div>
