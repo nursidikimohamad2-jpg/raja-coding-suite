@@ -26,7 +26,7 @@ const Tentang = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-              Tentang <span className="gradient-text">Raja Coding</span>
+              Tentang <BrandName variant="gradient" />
             </h1>
             {isLoading ? (
               <Skeleton className="h-24 w-full" />
