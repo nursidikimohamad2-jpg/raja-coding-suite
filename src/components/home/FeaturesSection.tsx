@@ -1,4 +1,5 @@
 import { Shield, Target, Wallet, HeadphonesIcon } from "lucide-react";
+import { BrandName } from "@/components/BrandName";
 
 const features = [
   {
