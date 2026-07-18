@@ -1,6 +1,7 @@
 import { Target, Eye, CheckCircle, Users, Award, Zap } from "lucide-react";
 import { useAboutContent } from "@/hooks/usePublicData";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BrandName } from "@/components/BrandName";
 
 const Tentang = () => {
   const { data: about, isLoading } = useAboutContent();
