@@ -355,6 +355,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_admin_stats: {
+        Args: never
+        Returns: {
+          messages_count: number
+          portfolio_count: number
+          products_count: number
+          unread_count: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

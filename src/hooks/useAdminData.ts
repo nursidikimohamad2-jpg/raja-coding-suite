@@ -31,11 +31,11 @@ export function useUpdateSiteSettings() {
       if (existing?.id) {
         const { error } = await supabase
           .from("site_settings")
-          .update(settings)
+          .update(settings as never)
           .eq("id", existing.id);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("site_settings").insert(settings);
+        const { error } = await supabase.from("site_settings").insert(settings as never);
         if (error) throw error;
       }
     },
@@ -78,7 +78,7 @@ export function useUpdateHomepageContent() {
       if (existing?.id) {
         const { error } = await supabase
           .from("homepage_content")
-          .update(content)
+          .update(content as never)
           .eq("id", existing.id);
         if (error) throw error;
       }
@@ -133,7 +133,7 @@ export function useUpdateService() {
 
   return useMutation({
     mutationFn: async ({ id, ...service }: { id: string } & Record<string, unknown>) => {
-      const { error } = await supabase.from("services").update(service).eq("id", id);
+      const { error } = await supabase.from("services").update(service as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -208,7 +208,7 @@ export function useUpdatePortfolio() {
 
   return useMutation({
     mutationFn: async ({ id, ...portfolio }: { id: string } & Record<string, unknown>) => {
-      const { error } = await supabase.from("portfolio").update(portfolio).eq("id", id);
+      const { error } = await supabase.from("portfolio").update(portfolio as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -283,7 +283,7 @@ export function useUpdateProduct() {
 
   return useMutation({
     mutationFn: async ({ id, ...product }: { id: string } & Record<string, unknown>) => {
-      const { error } = await supabase.from("products").update(product).eq("id", id);
+      const { error } = await supabase.from("products").update(product as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -344,7 +344,7 @@ export function useUpdateAboutContent() {
       if (existing?.id) {
         const { error } = await supabase
           .from("about_content")
-          .update(content)
+          .update(content as never)
           .eq("id", existing.id);
         if (error) throw error;
       }
@@ -431,7 +431,7 @@ export function useUpdateMenuSetting() {
 
   return useMutation({
     mutationFn: async ({ id, ...menu }: { id: string } & Record<string, unknown>) => {
-      const { error } = await supabase.from("menu_settings").update(menu).eq("id", id);
+      const { error } = await supabase.from("menu_settings").update(menu as never).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -444,24 +444,36 @@ export function useUpdateMenuSetting() {
   });
 }
 
-// Stats for dashboard
+// Stats for dashboard — single RPC call replaces 4 HEAD count queries
 export function useAdminStats() {
   return useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [portfolioRes, productsRes, messagesRes, unreadRes] = await Promise.all([
-        supabase.from("portfolio").select("id", { count: "exact", head: true }),
-        supabase.from("products").select("id", { count: "exact", head: true }).eq("is_active", true),
-        supabase.from("contact_messages").select("id", { count: "exact", head: true }),
-        supabase.from("contact_messages").select("id", { count: "exact", head: true }).eq("is_read", false),
-      ]);
-
+      const { data, error } = await supabase.rpc("get_admin_stats");
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
       return {
-        portfolioCount: portfolioRes.count || 0,
-        productsCount: productsRes.count || 0,
-        messagesCount: messagesRes.count || 0,
-        unreadCount: unreadRes.count || 0,
+        portfolioCount: Number(row?.portfolio_count ?? 0),
+        productsCount: Number(row?.products_count ?? 0),
+        messagesCount: Number(row?.messages_count ?? 0),
+        unreadCount: Number(row?.unread_count ?? 0),
       };
+    },
+  });
+}
+
+// Lightweight recent messages for dashboard (5 rows, minimal columns)
+export function useRecentContactMessages(limit = 5) {
+  return useQuery({
+    queryKey: ["contact-messages-recent", limit],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("contact_messages")
+        .select("id, name, contact, message, is_read, created_at")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      return data;
     },
   });
 }
