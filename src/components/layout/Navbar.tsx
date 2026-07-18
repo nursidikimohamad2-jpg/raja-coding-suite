@@ -4,6 +4,7 @@ import { Menu, X, Code2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useActiveMenus, useSiteSettings } from "@/hooks/usePublicData";
+import { BrandName } from "@/components/BrandName";
 
 const defaultNavLinks = [
   { name: "Beranda", href: "/" },
@@ -44,13 +45,7 @@ export function Navbar() {
               </div>
             )}
             <span className="font-display font-bold text-xl">
-              {companyName.includes("Raja") || companyName.includes("Coding") ? (
-                <>
-                  Raja<span className="text-primary">Coding</span>
-                </>
-              ) : (
-                companyName
-              )}
+              <BrandName />
             </span>
           </Link>
 

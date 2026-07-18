@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Code2, Mail, Phone, MapPin } from "lucide-react";
 import { useSiteSettings, useActiveServices, useActiveMenus } from "@/hooks/usePublicData";
+import { BrandName } from "@/components/BrandName";
 
 export function Footer() {
   const { data: settings } = useSiteSettings();
@@ -45,13 +46,7 @@ export function Footer() {
                 </div>
               )}
               <span className="font-display font-bold text-xl">
-                {companyName.includes("Raja") && companyName.includes("Coding") ? (
-                  <>
-                    Raja<span className="text-primary">Coding</span>
-                  </>
-                ) : (
-                  companyName
-                )}
+                <BrandName />
               </span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">

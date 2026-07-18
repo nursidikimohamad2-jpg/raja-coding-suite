@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useHomepageContent } from "@/hooks/usePublicData";
+import { useHomepageContent, useSiteSettings } from "@/hooks/usePublicData";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BrandName } from "@/components/BrandName";
 
 // Helper function to convert YouTube URL to embed URL
 function getYouTubeEmbedUrl(url: string): string {
@@ -71,7 +72,7 @@ export function HeroSection() {
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-slide-up">
               {homepage?.headline || (
                 <>
-                  <span className="gradient-text">Raja Coding</span>
+                  <BrandName variant="gradient" />
                   <br />
                   <span className="text-foreground">Solusi Digital & Coding</span>
                   <br />

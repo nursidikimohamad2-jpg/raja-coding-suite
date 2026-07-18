@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { BrandName } from "@/components/BrandName";
 
 const menuItems = [
   { icon: LayoutDashboard, title: "Dashboard", path: "/admin" },
@@ -81,7 +82,7 @@ export function AdminLayout() {
             <Code2 className="w-5 h-5 text-primary" />
           </div>
           <span className="font-display font-bold">
-            Raja<span className="text-primary">Coding</span>
+            <BrandName />
           </span>
           <button
             className="ml-auto lg:hidden"

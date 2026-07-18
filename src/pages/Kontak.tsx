@@ -56,7 +56,7 @@ const Kontak = () => {
   };
 
   const whatsappNumber = settings?.whatsapp || "6281234567890";
-  const whatsappMessage = encodeURIComponent("Halo Raja Coding, saya ingin konsultasi tentang...");
+  const whatsappMessage = encodeURIComponent(`Halo ${settings?.company_name || "Raja Coding"}, saya ingin konsultasi tentang...`);
 
   return (
     <div className="min-h-screen py-20 md:py-32">

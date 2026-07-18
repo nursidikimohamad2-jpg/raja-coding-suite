@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Code2, Lock, Mail, AlertCircle, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BrandName, useCompanyName } from "@/components/BrandName";
 
 const Login = () => {
   const navigate = useNavigate();
   const { user, isAdmin, loading, signIn, signUp } = useAuth();
+  const companyName = useCompanyName();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [formData, setFormData] = useState({
     email: "",
@@ -79,7 +81,7 @@ const Login = () => {
             <Code2 className="w-7 h-7 text-primary" />
           </div>
           <span className="font-display font-bold text-2xl">
-            Raja<span className="text-primary">Coding</span>
+            <BrandName />
           </span>
         </div>
 
@@ -91,7 +93,7 @@ const Login = () => {
             </h1>
             <p className="text-muted-foreground text-sm">
               {mode === "login"
-                ? "Masuk ke dashboard admin Raja Coding"
+                ? `Masuk ke dashboard admin ${companyName}`
                 : "Buat akun admin baru"}
             </p>
           </div>
