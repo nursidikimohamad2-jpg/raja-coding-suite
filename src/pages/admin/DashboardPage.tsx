@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { Briefcase, Package, MessageSquare, Mail, Home, Info, Settings, ImageIcon } from "lucide-react";
 import { useAdminStats, useRecentContactMessages } from "@/hooks/useAdminData";
+import { useCompanyName } from "@/components/BrandName";
 import { formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 
 const DashboardPage = () => {
   const { data: stats, isLoading: statsLoading } = useAdminStats();
   const { data: recentMessages = [], isLoading: messagesLoading } = useRecentContactMessages(5);
+  const companyName = useCompanyName();
 
   const statCards = [
     { title: "Total Portofolio", value: stats?.portfolioCount || 0, icon: Briefcase, color: "text-blue-500" },
