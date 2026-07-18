@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { BrandName } from "@/components/BrandName";
 
 const menuItems = [
   { icon: LayoutDashboard, title: "Dashboard", path: "/admin" },
