@@ -9,6 +9,7 @@ import { BrandName, useCompanyName } from "@/components/BrandName";
 const Login = () => {
   const navigate = useNavigate();
   const { user, isAdmin, loading, signIn, signUp } = useAuth();
+  const companyName = useCompanyName();
   const [mode, setMode] = useState<"login" | "register">("login");
   const [formData, setFormData] = useState({
     email: "",
