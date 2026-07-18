@@ -72,7 +72,7 @@ export function HeroSection() {
             <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 animate-slide-up">
               {homepage?.headline || (
                 <>
-                  <span className="gradient-text">Raja Coding</span>
+                  <BrandName variant="gradient" />
                   <br />
                   <span className="text-foreground">Solusi Digital & Coding</span>
                   <br />
