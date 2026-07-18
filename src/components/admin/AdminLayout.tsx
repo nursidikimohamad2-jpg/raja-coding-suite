@@ -81,7 +81,7 @@ export function AdminLayout() {
             <Code2 className="w-5 h-5 text-primary" />
           </div>
           <span className="font-display font-bold">
-            Raja<span className="text-primary">Coding</span>
+            <BrandName />
           </span>
           <button
             className="ml-auto lg:hidden"
