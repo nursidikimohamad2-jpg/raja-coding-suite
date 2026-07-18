@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { useHomepageContent } from "@/hooks/usePublicData";
+import { useHomepageContent, useSiteSettings } from "@/hooks/usePublicData";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BrandName } from "@/components/BrandName";
 
 // Helper function to convert YouTube URL to embed URL
 function getYouTubeEmbedUrl(url: string): string {
