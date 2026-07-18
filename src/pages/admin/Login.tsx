@@ -93,7 +93,7 @@ const Login = () => {
             </h1>
             <p className="text-muted-foreground text-sm">
               {mode === "login"
-                ? `Masuk ke dashboard admin ${useCompanyName()}`
+                ? `Masuk ke dashboard admin ${companyName}`
                 : "Buat akun admin baru"}
             </p>
           </div>
