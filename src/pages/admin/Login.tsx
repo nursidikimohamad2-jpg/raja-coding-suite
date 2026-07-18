@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Code2, Lock, Mail, AlertCircle, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { BrandName, useCompanyName } from "@/components/BrandName";
 
 const Login = () => {
   const navigate = useNavigate();
