@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Code2, Mail, Phone, MapPin } from "lucide-react";
 import { useSiteSettings, useActiveServices, useActiveMenus } from "@/hooks/usePublicData";
+import { BrandName } from "@/components/BrandName";
 
 export function Footer() {
   const { data: settings } = useSiteSettings();
