@@ -31,7 +31,7 @@ export function FeaturesSection() {
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-            Mengapa <span className="gradient-text">Raja Coding</span>?
+            Mengapa <BrandName variant="gradient" />?
           </h2>
           <p className="text-muted-foreground">
             Keunggulan yang membuat kami berbeda dari yang lain.
