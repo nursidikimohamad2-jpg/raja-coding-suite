@@ -46,13 +46,7 @@ export function Footer() {
                 </div>
               )}
               <span className="font-display font-bold text-xl">
-                {companyName.includes("Raja") && companyName.includes("Coding") ? (
-                  <>
-                    Raja<span className="text-primary">Coding</span>
-                  </>
-                ) : (
-                  companyName
-                )}
+                <BrandName />
               </span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">
